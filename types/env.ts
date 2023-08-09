@@ -13,4 +13,6 @@ export interface ProcessEnv {
   GOOGLE_CLIENT_SECRET?: string;
   NEXTAUTH_ENABLED: 'true' | 'false';
   NEXTAUTH_EMAIL_PATTERN?: string;
+  ELASTIC_CLOUD_ID: string;
+  ELASTIC_API_KEY: string;
 }

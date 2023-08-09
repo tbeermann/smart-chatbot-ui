@@ -60,6 +60,28 @@ export class UserDb {
     return new UserDb(await getDb(), userId);
   }
 
+
+
+}
+
+export class MongoDb {
+  private _conversations: Collection<ConversationCollectionItem>;
+  private _folders: Collection<FoldersCollectionItem>;
+  private _prompts: Collection<PromptsCollectionItem>;
+  private _settings: Collection<SettingsCollectionItem>;
+
+  constructor(_db: Db, private _userId: string) {
+    this._conversations =
+      _db.collection<ConversationCollectionItem>('conversations');
+    this._folders = _db.collection<FoldersCollectionItem>('folders');
+    this._prompts = _db.collection<PromptsCollectionItem>('prompts');
+    this._settings = _db.collection<SettingsCollectionItem>('settings');
+  }
+
+  static async fromUserHash(userId: string): Promise<UserDb> {
+    return new UserDb(await getDb(), userId);
+  }
+
   async getConversations(): Promise<Conversation[]> {
     return (
       await this._conversations
