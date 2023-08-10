@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-**Welcome to Chatbot UI!**
+**Welcome to Elastic Chat!**
 
 We appreciate your interest in contributing to our project.
 

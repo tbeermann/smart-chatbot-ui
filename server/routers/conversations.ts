@@ -9,7 +9,13 @@ import { z } from 'zod';
 export const conversations = router({
   list: procedure.query(async ({ ctx }) => {
     const userDb = await UserDb.fromUserHash(ctx.userHash);
-    return await userDb.getConversations();
+    //return await userDb.getConversations();
+    let c = await userDb.getConversations();
+    // console.log('userDb.getConversations() = ' + c);
+    // console.log('^^^^^  getConversations from Mongo');
+    // console.log('userDb.getConversations() = ' + JSON.stringify(c, null, 4));
+    // console.log('^^^^^  END getConversations from Mongo');
+    return c;
   }),
   remove: procedure
     .input(z.object({ id: z.string() }))
@@ -27,6 +33,7 @@ export const conversations = router({
     .input(ConversationSchema)
     .mutation(async ({ ctx, input }) => {
       const userDb = await UserDb.fromUserHash(ctx.userHash);
+
       await userDb.saveConversation(input);
       return { success: true };
     }),

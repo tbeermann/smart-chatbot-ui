@@ -463,16 +463,16 @@ export const ChatInput = ({ onSend, onRegenerate, textareaRef }: Props) => {
       </ChatInputContainer>
       <div className="px-3 pt-2 pb-3 text-center text-[12px] text-black/50 dark:text-white/50 md:px-4 md:pt-3 md:pb-6">
         <a
-          href="https://github.com/dotneet/smart-chatbot-ui"
+          href="https://github.com/tbeermann/smart-chatbot-ui"
           target="_blank"
           rel="noreferrer"
           className="underline"
         >
-          Smart ChatBot UI
+          Elastic Augmented Chats
         </a>
         .{' '}
         {t(
-          "Smart Chatbot UI is an advanced chatbot kit for OpenAI's chat models aiming to mimic ChatGPT's interface and functionality.",
+          'Built on Elastic Chat and Smart Elastic Chat, an advanced chatbot kit for Generative AI',
         )}
       </div>
     </div>

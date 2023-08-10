@@ -1,4 +1,4 @@
-# Smart Chatbot UI
+# Smart Elastic Chat
 
 This repo is forked from [chatbot-ui](https://github.com/mckaywrigley/chatbot-ui).
 
@@ -19,11 +19,11 @@ This repository is highly experimental, so please do not expect compatibility wh
 - Persitent storage(MongoDB)
 - IME support
 
-![Chatbot UI](./docs/screenshot_2023-05-08.png)
+![Elastic Chat](./docs/screenshot_2023-05-08.png)
 
 ## Updates
 
-- Chatbot UI will be updated over time.
+- Elastic Chat will be updated over time.
 - Expect frequent improvements.
 
 **Recent updates:**

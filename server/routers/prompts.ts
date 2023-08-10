@@ -10,6 +10,10 @@ export const prompts = router({
   list: procedure.query(async ({ ctx }) => {
     const userDb = await UserDb.fromUserHash(ctx.userHash);
     return await userDb.getPrompts();
+    let p =  await userDb.getPrompts();
+    console.log('prompts.ts  prompts() = ' + p);
+    console.log('prompts.ts  prompts() = ' + JSON.stringify(p, null, 4));
+    
   }),
   remove: procedure
     .input(z.object({ id: z.string() }))

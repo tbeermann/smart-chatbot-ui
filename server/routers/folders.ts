@@ -9,7 +9,11 @@ import { z } from 'zod';
 export const folders = router({
   list: procedure.query(async ({ ctx }) => {
     const userDb = await UserDb.fromUserHash(ctx.userHash);
-    return await userDb.getFolders();
+    //return await userDb.getFolders();
+    let f = await userDb.getFolders();
+    // console.log('folders.tx  folders() = ' + f);
+    // console.log('folders.tx  folders() = ' + JSON.stringify(f, null, 4));
+    return f
   }),
   remove: procedure
     .input(z.object({ id: z.string() }))
