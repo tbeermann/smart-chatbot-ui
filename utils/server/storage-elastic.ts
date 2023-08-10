@@ -26,15 +26,32 @@ export async function getEs(): Promise<Client> {
     cloud: { id: ELASTIC_CLOUD_ID },
     auth: { apiKey: base64EncodedKey }
   })
+
+  checkIndicesExist(client);
   
   _es = client;
   return client;
 }
 
-// const client = new Client({
-//   cloud: { id: ELASTIC_CLOUD_ID },
-//   auth: { apiKey: base64EncodedKey }
-// })
+export async function checkIndicesExist(client:Client) {
+  await client.indices
+    .create({ index: 'conversations' })
+    .catch(err => {  console.log('conversation index exists') });
+
+  await client.indices
+    .create({ index: 'settings' })
+    .catch(err => {  console.log('settings index exits') });
+
+  await client.indices
+    .create({ index: 'prompts' })
+    .catch(err => {  console.log('prompts index exists') });
+
+    await client.indices
+    .create({ index: 'folders' })
+    .catch(err => {  console.log('folders index exists') });
+}
+
+
 
 export interface ConversationCollectionItem {
   userId: string;
@@ -105,11 +122,8 @@ export class UserElasticsearch {
   }
 
   async saveConversation(conversation: Conversation) {
-    // console.log("--------------------------------------");
-    // console.log("saveConversation IN ELASTIC  =  " + conversation);
-    // console.log(JSON.stringify(conversation, null, 4));
-    // console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
     
+    // Not working
     conversation.user_id = this.userId;
 
     await this._elastic.index({
@@ -132,7 +146,7 @@ export class UserElasticsearch {
   }
 
   async removeAllConversations() {
-    console.log("DELETE Everything for USER ID " + this._userId);
+    console.log("NOT IMPLEMENTED  Remove All Conversations from Elasticsearch by user_id " + this._userId);
   }
 
 
@@ -179,51 +193,108 @@ export class UserElasticsearch {
       id: id
     }).catch(err => {
       console.error(err)
+    });
+  }
+
+  async removeAllFolders(type: string) {
+    // # Elastic
+    console.log("Remove All Folders Not implemented ..... type =  " + type);
+
+    // # Mongo
+    // return this._folders.deleteMany({
+    //   userId: this._userId,
+    //   'folder.type': type,
+    // });
+  }
+
+  async getPrompts(): Promise<Prompt[]> {
+
+    const result= await this._elastic.search<Document>({
+      index: 'prompts',
+      "query": {"match_all": {}}
+    }).catch(err => {
+      console.error(err)
     })
+
+    let p = [];
+
+    if (result) {
+      let h = result.hits.hits;
+      for (let x = 0; x < h.length; x++) {
+        let d = h[x];
+        let source = d._source;
+        p.push(source);
+      }
+    }
+
+    return p;
 
   }
 
+  async savePrompt(prompt: Prompt) {
+    console.log("Save Elastic PROMPTS");
+
+    await this._elastic.index({
+      index: 'prompts',
+      id: prompt.id,
+      document: prompt
+    })
+
+    return true;
+
+  }
+
+  async removePrompt(id: string) {
+    console.log("Elastic remove PROMPT # " + id);
+    this._elastic.delete({
+      index: "prompts",
+      id: id
+    }).catch(err => {
+      console.error(err)
+    });
+  }
+
+  async getSettings(): Promise<Settings> {
+    console.log(" Elastic get CHAT UI settings")
+    let user_id = this._userId;
+
+    const result= await this._elastic.search<Document>({
+      index: 'settings',
+      "query": {"match_all": {}}
+    }).catch(err => {
+      console.error(err)
+    })
+
+    let settings = {
+      userId: this._userId,
+      theme: 'dark',
+      defaultTemperature: 1.0,
+    }
+
+    // There should only be one of these per user
+    // Users not fully implemented
+
+    if (result) {
+      let h = result.hits.hits;
+      if (h.length > 0) {
+        settings = h[0]._source;
+      }
+      
+    }
+
+    return settings;
+  }
+
+  async saveSettings(settings: Settings) {
+    console.log("Save Elastic Chat UI Settings");
+
+    await this._elastic.index({
+      index: 'settings',
+      id: settings.userId,
+      document: settings
+    })
+
+    return true;
+  }
 }
 
-async function run () {
-  // Let's start by indexing some data
-  await _es.index({
-    index: 'game-of-thrones',
-    document: {
-      character: 'Ned Stark',
-      quote: 'Winter is coming.'
-    }
-  })
-
-  await client.index({
-    index: 'game-of-thrones',
-    document: {
-      character: 'Daenerys Targaryen',
-      quote: 'I am the blood of the dragon.'
-    }
-  })
-
-  await client.index({
-    index: 'game-of-thrones',
-    document: {
-      character: 'Tyrion Lannister',
-      quote: 'A mind needs books like a sword needs a whetstone.'
-    }
-  })
-
-  // here we are forcing an index refresh, otherwise we will not
-  // get any result in the consequent search
-  await client.indices.refresh({ index: 'game-of-thrones' })
-
-  // Let's search!
-  const result= await client.search<Document>({
-    index: 'game-of-thrones',
-    query: {
-      match: { quote: 'winter' }
-    }
-  })
-
-  console.log(result.hits.hits)
-}
-
-//run().catch(console.log)
