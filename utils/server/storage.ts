@@ -2,101 +2,100 @@ import { Conversation } from '@/types/chat';
 import { FolderInterface } from '@/types/folder';
 import { Prompt } from '@/types/prompt';
 import { Settings } from '@/types/settings';
+import { ELASTIC_CLOUD_ID } from '../app/const';
+import { Client } from '@elastic/elasticsearch'
 
-import { UserElasticsearch } from './storage-elastic';
+let base64EncodedKey = process.env.ELASTIC_API_KEY || '';
 
-import { MONGODB_DB } from '../app/const';
-
-import { Collection, Db, MongoClient } from 'mongodb';
-
-let _db: Db | null = null;
-
+let _es: Client | null = null; // Not sure if this is needed
 
 // This is called in the UserDb constructor
-export async function getDb(): Promise<Db> {
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI is not set');
+export async function getEs(): Promise<Client> {
+  if (!base64EncodedKey) {
+    throw new Error('ELASTIC_API_KEY is not set');
   }
-  if (_db !== null) {
-    return _db;
+  if (_es !== null) {
+    return _es
   }
-  const client = await MongoClient.connect(process.env.MONGODB_URI);
-  let db = client.db(MONGODB_DB);
-  _db = db;
-  return db;
+  const client = new Client({
+    cloud: { id: ELASTIC_CLOUD_ID },
+    auth: { apiKey: base64EncodedKey }
+  })
+
+  checkIndicesExist(client);
+  
+  _es = client;
+  return client;
 }
 
-export interface ConversationCollectionItem {
-  userId: string;
-  conversation: Conversation;
-}
-export interface PromptsCollectionItem {
-  userId: string;
-  prompt: Prompt;
+export async function checkIndicesExist(client:Client) {
+  await client.indices
+    .create({ index: 'conversations' })
+    .catch(err => {  console.log('conversation index exists') });
+
+  await client.indices
+    .create({ index: 'settings' })
+    .catch(err => {  console.log('settings index exits') });
+
+  await client.indices
+    .create({ index: 'prompts' })
+    .catch(err => {  console.log('prompts index exists') });
+
+    await client.indices
+    .create({ index: 'folders' })
+    .catch(err => {  console.log('folders index exists') });
 }
 
-export interface FoldersCollectionItem {
-  userId: string;
-  folder: FolderInterface;
-}
 
-export interface SettingsCollectionItem {
-  userId: string;
-  settings: Settings;
+
+interface Document {
+  character: string
+  quote: string
 }
 
 export class UserDb {
-  private _conversations: Collection<ConversationCollectionItem>;
-  private _folders: Collection<FoldersCollectionItem>;
-  private _prompts: Collection<PromptsCollectionItem>;
-  private _settings: Collection<SettingsCollectionItem>;
-  private _id: string;
+  private _elastic: Client;
 
-  //private _userElasticserach: UserElasticsearch;
-
-  constructor(_db: Db, private _userId: string) {
-    // console.log("In constructor");
-    this._conversations =
-      _db.collection<ConversationCollectionItem>('conversations');
-    this._folders = _db.collection<FoldersCollectionItem>('folders');
-    this._prompts = _db.collection<PromptsCollectionItem>('prompts');
-    this._settings = _db.collection<SettingsCollectionItem>('settings');
-    this._id = _userId;
+  constructor(_es: Client, private _userId:string) {
+    this._elastic = _es
   }
 
   static async fromUserHash(userId: string): Promise<UserDb> {
-    
-    return new UserDb(await getDb(), userId);
+    return new UserDb(await getEs(), userId)
   }
 
   async getConversations(): Promise<Conversation[]> {
-    // # Elasticsearch
-    const es = await UserElasticsearch.fromUserHash(this._userId);
-    let e = await es.getConversations();
-    return e;
+    const result= await this._elastic.search<Document>({
+      index: 'conversations',
+      "query": {"match_all": {}}
+    }).catch(err => {
+      console.error(err)
+    })
 
-    // # Mongo
-    // return (
-    //   await this._conversations
-    //     .find({ userId: this._userId })
-    //     .sort({ _id: -1 })
-    //     .toArray()
-    // ).map((item) => item.conversation);
+    let a = [];
 
+    if (result) {
+      let h = result.hits.hits;
+      for (let x = 0; x < h.length; x++) {
+        let d = h[x];
+        let source = d._source;
+        a.push(source);
+      }
+    }
+
+    return a;
   }
 
   async saveConversation(conversation: Conversation) {
-    // # Elasticsearch
-    const es = await UserElasticsearch.fromUserHash(this._userId);
-    await es.saveConversation(conversation);
-    return true;
+    
+    // Not working
+    conversation.user_id = this.userId;
 
-    // # Mongo
-    // return this._conversations.updateOne(
-    //   { userId: this._userId, 'conversation.id': conversation.id },
-    //   { $set: { conversation } },
-    //   { upsert: true },
-    // );
+    await this._elastic.index({
+      index: 'conversations',
+      id: conversation.id,
+      document: conversation
+    })
   }
 
   async saveConversations(conversations: Conversation[]) {
@@ -107,77 +106,63 @@ export class UserDb {
   }
 
   async removeConversation(id: string) {
-    // # Elasticsearch
-    const es =  await UserElasticsearch.fromUserHash(this._userId);
-    es.removeConversation(id);
-    return true;
-
-    // # Mongo
-    // this._conversations.deleteOne({
-    //   userId: this._userId,
-    //   'conversation.id': id,
-    // });
+    this._elastic.delete({
+      index: "conversations",
+      id: id
+    }).catch(err => {
+      console.error(err)
+    })
   }
 
   async removeAllConversations() {
-    // # Elasicsearch
-    const es =  await UserElasticsearch.fromUserHash(this._userId);
-    es.removeAllConversations();
-
-    // # Mongo
-    this._conversations.deleteMany({ userId: this._userId });
+    console.log("NOT IMPLEMENTED  Remove All Conversations from Elasticsearch by user_id " + this._userId);
   }
 
+
   async getFolders(): Promise<FolderInterface[]> {
-    // # Elasticsearch
-    const es =  await UserElasticsearch.fromUserHash(this._userId);
-    let f =  es.getFolders();
+
+    const result= await this._elastic.search<Document>({
+      index: 'folders',
+      "query": {"match_all": {}}
+    }).catch(err => {
+      console.error(err)
+    })
+
+    let f = [];
+
+    if (result) {
+      let h = result.hits.hits;
+      for (let x = 0; x < h.length; x++) {
+        let d = h[x];
+        let source = d._source;
+        f.push(source);
+      }
+    }
+
     return f;
 
-    // # Mongo
-    // const items = await this._folders
-    //   .find({ userId: this._userId })
-    //   .sort({ 'folder.name': 1 })
-    //   .toArray();
-    // return items.map((item) => item.folder);
   }
 
   async saveFolder(folder: FolderInterface) {
-    // # Elasticsearh
-    const es =  await UserElasticsearch.fromUserHash(this._userId);
-    await es.saveFolder(folder);
-    
-    // # Mongo
-    // return this._folders.updateOne(
-    //   { userId: this._userId, 'folder.id': folder.id },
-    //   { $set: { folder } },
-    //   { upsert: true },
-    // );
+    console.log("Save Elastic FOLDERS");
+
+    await this._elastic.index({
+      index: 'folders',
+      id: folder.id,
+      document: folder
+    })
+
+    return true;
+ 
   }
 
-  async saveFolders(folders: FolderInterface[]) {
-   // console.log("saveFolders  =  " + folders);
-    for (const folder of folders) {
-      await this.saveFolder(folder);
-    }
-  }
-
-  /**
-   * TODO:  Issue - Removed folders does not remove folder id from
-   * conversation object (conversation.foldeId).  Needs to be set to null 
-   * @param id 
-   */
   async removeFolder(id: string) {
-    // # Elasticsearch
-    const es =  await UserElasticsearch.fromUserHash(this._userId);
-    await es.removeFolder(id);
-
-    // # Mongo
-
-    // return this._folders.deleteOne({
-    //   userId: this._userId,
-    //   'folder.id': id,
-    // });
+    this._elastic.delete({
+      index: "folders",
+      id: id
+    }).catch(err => {
+      console.error(err)
+    });
   }
 
   async removeAllFolders(type: string) {
@@ -185,97 +170,96 @@ export class UserDb {
     console.log("Remove All Folders Not implemented ..... type =  " + type);
 
     // # Mongo
-    return this._folders.deleteMany({
-      userId: this._userId,
-      'folder.type': type,
-    });
-  }
-
-  async getPrompts(): Promise<Prompt[]> {
-    // # Elasticsearch
-    const es =  await UserElasticsearch.fromUserHash(this._userId);
-    let p =  es.getPrompts();
-    return p;
-
-    // # Mongo
-    // const items = await this._prompts
-    //   .find({ userId: this._userId })
-    //   .sort({ 'prompt.name': 1 })
-    //   .toArray();
-
-    // return items.map((item) => item.prompt);
-  }
-
-  async savePrompt(prompt: Prompt) {
-    // # Elastic
-    const es =  await UserElasticsearch.fromUserHash(this._userId);
-    await es.savePrompt(prompt);
-
-
-    // # Mongo
-    // return this._prompts.updateOne(
-    //   { userId: this._userId, 'prompt.id': prompt.id },
-    //   { $set: { prompt } },
-    //   { upsert: true },
-    // );
-  }
-
-  async savePrompts(prompts: Prompt[]) {
-    for (const prompt of prompts) {
-      await this.savePrompt(prompt);
-    }
-  }
-
-  async removePrompt(id: string) {
-    // # Elastic
-    const es =  await UserElasticsearch.fromUserHash(this._userId);
-    await es.removePrompt(id);
-
-    // # Mongo
-    // return this._prompts.deleteOne({
+    // return this._folders.deleteMany({
     //   userId: this._userId,
-    //   'prompt.id': id,
+    //   'folder.type': type,
     // });
   }
 
+  async getPrompts(): Promise<Prompt[]> {
+
+    const result= await this._elastic.search<Document>({
+      index: 'prompts',
+      "query": {"match_all": {}}
+    }).catch(err => {
+      console.error(err)
+    })
+
+    let p = [];
+
+    if (result) {
+      let h = result.hits.hits;
+      for (let x = 0; x < h.length; x++) {
+        let d = h[x];
+        let source = d._source;
+        p.push(source);
+      }
+    }
+
+    return p;
+  }
+
+  async savePrompt(prompt: Prompt) {
+    await this._elastic.index({
+      index: 'prompts',
+      id: prompt.id,
+      document: prompt
+    })
+
+    return true;
+  }
+
+  async removePrompt(id: string) {
+    console.log("Elastic remove PROMPT # " + id);
+    this._elastic.delete({
+      index: "prompts",
+      id: id
+    }).catch(err => {
+      console.error(err)
+    });
+  }
+
   async getSettings(): Promise<Settings> {
-    // # Elastic
-    const es = await UserElasticsearch.fromUserHash(this._userId);
-    let s = await es.getSettings();
+    console.log(" Elastic get CHAT UI settings")
+    let user_id = this._userId;
 
-    
+    const result= await this._elastic.search<Document>({
+      index: 'settings',
+      "query": {"match_all": {}}
+    }).catch(err => {
+      console.error(err)
+    })
 
-    return s;
+    let settings = {
+      userId: this._userId,
+      theme: 'dark',
+      defaultTemperature: 1.0,
+    }
 
-    // # Mongo
-    // const item = await this._settings.findOne({ userId: this._userId });
-    // if (item) {
-    //   return item.settings;
-    // }
+    // There should only be one of these per user
+    // Users not fully implemented
 
-    // // Default values if nothing found
-    // return {
-    //   userId: this._userId,
-    //   theme: 'dark',
-    //   defaultTemperature: 1.0,
-    // };
+    if (result) {
+      let h = result.hits.hits;
+      if (h.length > 0) {
+        settings = h[0]._source;
+      }
+      
+    }
 
-
+    return settings;
   }
 
   async saveSettings(settings: Settings) {
-    settings.userId = this._userId;
+    console.log("Save Elastic Chat UI Settings");
 
-    // # Elastic
-    const es =  await UserElasticsearch.fromUserHash(this._userId);
-    await es.saveSettings(settings);
+    await this._elastic.index({
+      index: 'settings',
+      id: settings.userId,
+      document: settings
+    })
 
-
-    // # Mongo
-    // return this._settings.updateOne(
-    //   { userId: this._userId },
-    //   { $set: { settings } },
-    //   { upsert: true },
-    // );
+    return true;
   }
 }
+
