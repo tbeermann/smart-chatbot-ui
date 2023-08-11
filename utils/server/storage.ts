@@ -99,7 +99,6 @@ export class UserDb {
   }
 
   async saveConversations(conversations: Conversation[]) {
-    console.log("saveConversationS  =  " + conversations);
     for (const conversation of conversations) {
       await this.saveConversation(conversation);
     }
@@ -144,16 +143,13 @@ export class UserDb {
   }
 
   async saveFolder(folder: FolderInterface) {
-    console.log("Save Elastic FOLDERS");
-
     await this._elastic.index({
       index: 'folders',
       id: folder.id,
       document: folder
-    })
+    });
 
     return true;
- 
   }
 
   async removeFolder(id: string) {
@@ -210,7 +206,6 @@ export class UserDb {
   }
 
   async removePrompt(id: string) {
-    console.log("Elastic remove PROMPT # " + id);
     this._elastic.delete({
       index: "prompts",
       id: id

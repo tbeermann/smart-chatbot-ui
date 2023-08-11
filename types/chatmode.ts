@@ -16,6 +16,7 @@ export enum ChatModeID {
   AGENT = 'agent',
   CONVERSATIONAL_AGENT = 'conversational-agent',
   GOOGLE_SEARCH = 'google-search',
+  ELASTIC_SEARCH = 'elasticsearch'
 }
 
 export enum ChatModeName {
@@ -23,6 +24,7 @@ export enum ChatModeName {
   AGENT = 'Agent',
   CONVERSATIONAL_AGENT = 'Conversational Agent',
   GOOGLE_SEARCH = 'Google Search',
+  ELASTIC_SEARCH = 'Elasticsearch'
 }
 
 export const ChatModes: Record<ChatModeID, ChatMode> = {
@@ -55,6 +57,11 @@ export const ChatModes: Record<ChatModeID, ChatMode> = {
       },
     ],
   },
+  [ChatModeID.ELASTIC_SEARCH]: {
+    id: ChatModeID.ELASTIC_SEARCH,
+    name: ChatModeName.ELASTIC_SEARCH,
+    requiredKeys: [],
+  }
 };
 
 export const ChatModeList = Object.values(ChatModes);

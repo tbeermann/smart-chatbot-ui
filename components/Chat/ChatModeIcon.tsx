@@ -1,4 +1,9 @@
-import { IconBolt, IconBrandGoogle, IconRobot } from '@tabler/icons-react';
+import {
+  IconBolt,
+  IconBrandElastic,
+  IconBrandGoogle,
+  IconRobot,
+} from '@tabler/icons-react';
 
 import { ChatMode, ChatModeID } from '@/types/chatmode';
 
@@ -8,6 +13,8 @@ export const ChatModeIcon = ({ chatMode }: { chatMode: ChatMode }) => {
       return <IconRobot size={20} />;
     case ChatModeID.GOOGLE_SEARCH:
       return <IconBrandGoogle size={20} />;
+    case ChatModeID.ELASTIC_SEARCH:
+      return <IconBrandElastic size={20} />;
     default:
       return <IconBolt size={20} />;
   }
