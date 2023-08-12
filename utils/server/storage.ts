@@ -215,8 +215,8 @@ export class UserDb {
   }
 
   async getSettings(): Promise<Settings> {
-    console.log(" Elastic get CHAT UI settings")
-    let user_id = this._userId;
+    
+    //let user_id = this._userId;
 
     const result= await this._elastic.search<Document>({
       index: 'settings',

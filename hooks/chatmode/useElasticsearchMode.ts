@@ -17,7 +17,7 @@ import HomeContext from '@/pages/api/home/home.context';
 
 import useConversations from '../useConversations';
 
-export function useGoogleMode(conversations: Conversation[]): ChatModeRunner {
+export function useElasticsearchMode(conversations: Conversation[]): ChatModeRunner {
   const { t: errT } = useTranslation('error');
   const {
     state: { chatModeKeys },
@@ -28,15 +28,15 @@ export function useGoogleMode(conversations: Conversation[]): ChatModeRunner {
   const updater = new HomeUpdater(homeDispatch);
   const mutation = useMutation({
     mutationFn: async (params: ChatModeRunnerParams) => {
-      return apiService.googleSearch(params);
+      return apiService.elasticsearch(params);
     },
     onMutate: async (variables) => {
       console.log(variables);
       variables.body.elasticCloudID = chatModeKeys
-        .find((key) => key.chatModeId === 'google-search')
-        ?.requiredKeys.find((key) => key.key === 'GOOGLE_API_KEY')?.value;
+        .find((key) => key.chatModeId === 'elasticsearch')
+        ?.requiredKeys.find((key) => key.key === 'ELASTIC_CLOUD_ID')?.value;
       variables.body.elasticApiKey = chatModeKeys
-        .find((key) => key.chatModeId === 'google-search')
+        .find((key) => key.chatModeId === 'elasticsearch')
         ?.requiredKeys.find((key) => key.key === 'ELASTIC_API_KEY')?.value;
       homeDispatch({
         field: 'selectedConversation',

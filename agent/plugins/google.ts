@@ -16,6 +16,8 @@ import chalk from 'chalk';
 import endent from 'endent';
 import { getOpenAIApi } from '@/utils/server/openai';
 
+console.log('IT THIS EVEN USED??????    google.ts -- plugins');
+
 export default {
   nameForModel: 'google_search',
   nameForHuman: 'GoogleSearch',
@@ -36,7 +38,13 @@ export default {
     console.log('fetch:' + url);
     const googleRes = await fetch(url);
 
+    console.log("const googleRes = await fetch(url);    " + googleRes)
+
     const googleData = await googleRes.json();
+
+    console.log("const googleData = await googleRes.json();    " + googleData)
+
+
     const sources: GoogleSource[] = googleData.items.map((item: any) => ({
       title: item.title,
       link: item.link,

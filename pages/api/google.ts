@@ -14,6 +14,9 @@ import jsdom, { JSDOM } from 'jsdom';
 import path from 'node:path';
 import { getOpenAIApi } from '@/utils/server/openai';
 
+
+
+
 const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   // Vercel Hack
   // https://github.com/orgs/vercel/discussions/1278
@@ -43,6 +46,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     );
 
     const googleData = await googleRes.json();
+
+    // console.log("api/google.ts googleData = " + JSON.stringify(googleData, null, 6));
 
     const sources: GoogleSource[] = googleData.items.map((item: any) => ({
       title: item.title,
@@ -139,6 +144,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
 
     Response:
     `;
+
+    console.log("  IN GOOGLE ANSWER PROMPT  ");
 
     const answerMessage: Message = { role: 'user', content: answerPrompt };
     const openai = getOpenAIApi(model.azureDeploymentId);

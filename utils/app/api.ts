@@ -9,6 +9,10 @@ export const getEndpoint = (plugin: ChatMode | null) => {
     return 'api/google';
   }
 
+  if (plugin.id === ChatModeID.ELASTIC_SEARCH) {
+    return 'api/elasticsearch';
+  }
+
   return 'api/chat';
 };
 

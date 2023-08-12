@@ -20,8 +20,8 @@ export const ChatBodySchema = z.object({
   key: z.string(),
   prompt: z.string(),
   temperature: z.number(),
-  googleAPIKey: z.string().optional(),
-  googleCSEId: z.string().optional(),
+  elasticCloudID: z.string().optional(),
+  elasticApiKey: z.string().optional(),
 });
 
 export type ChatBody = z.infer<typeof ChatBodySchema>;

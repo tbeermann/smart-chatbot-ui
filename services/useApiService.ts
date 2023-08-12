@@ -50,6 +50,23 @@ const useApiService = () => {
     [fetchService],
   );
 
+  const elasticsearch = useCallback(
+    (
+      params: { body: ChatBody; conversation: Conversation },
+      signal?: AbortSignal,
+    ) => {
+      return fetchService.post<Message>(`/api/elasticsearch`, {
+        body: params.body,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal,
+        rawResponse: true,
+      });
+    },
+    [fetchService],
+  );
+
   const planning = useCallback(
     (params: PlanningRequestProps, signal?: AbortSignal) => {
       return fetchService.post<PlanningResponse>(`/api/planning`, {
@@ -104,6 +121,7 @@ const useApiService = () => {
   return {
     chat,
     googleSearch,
+    elasticsearch,
     planning,
     planningConv,
     runPlugin,

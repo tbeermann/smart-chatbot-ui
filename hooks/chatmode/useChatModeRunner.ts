@@ -3,6 +3,7 @@ import { MutableRefObject, useContext } from 'react';
 import { useAgentMode } from '@/hooks/chatmode/useAgentMode';
 import { useDirectMode } from '@/hooks/chatmode/useDirectMode';
 import { useGoogleMode } from '@/hooks/chatmode/useGoogleMode';
+import { useElasticsearchMode } from './useElasticsearchMode';
 
 import { ChatModeRunner, Conversation } from '@/types/chat';
 import { ChatMode, ChatModeID } from '@/types/chatmode';
@@ -15,6 +16,7 @@ export const useChatModeRunner = (conversations: Conversation[]) => {
   } = useContext(HomeContext);
   const directMode = useDirectMode(conversations, stopConversationRef);
   const googleMode = useGoogleMode(conversations);
+  const elasticsearchMode = useElasticsearchMode(conversations);
   const conversationalAgentMode = useAgentMode(
     conversations,
     stopConversationRef,
@@ -28,6 +30,8 @@ export const useChatModeRunner = (conversations: Conversation[]) => {
     switch (plugin.id) {
       case ChatModeID.GOOGLE_SEARCH:
         return googleMode;
+      case ChatModeID.ELASTIC_SEARCH:
+        return elasticsearchMode;
       case ChatModeID.AGENT:
         return agentMode;
       case ChatModeID.CONVERSATIONAL_AGENT:

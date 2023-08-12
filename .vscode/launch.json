@@ -4,6 +4,7 @@
     {
       "type": "node",
       "request": "launch",
+      "runtimeVersion": "18.16.1",
       "name": "Run Program",
       "skipFiles": ["<node_internals>/**"],
       "program": "${file}"
