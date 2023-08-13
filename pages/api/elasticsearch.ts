@@ -18,8 +18,8 @@ import { ObjectEncodingOptions } from 'node:fs';
 
 
 //TEMP
-let ELASTIC_CLOUD_ID = '';
-let ELASTIC_API_KEY = '';
+let ELASTIC_CLOUD_ID = 'Squishy_Chicken:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvOjQ0MyRkOWIxMmVhOTI3NGQ0NWEyYmYwMzU2OGJiOWJlMTg5YyRlOTY1ZmFmMDgwMTQ0NTlhYjVlN2JjNmYxMWRkYzgwNw==';
+let ELASTIC_API_KEY = 'Mnd4SjE0a0I3bnZlWUZpSVJfVUM6UlV3a1VZS3pUTW13ck5QU3N1WDZwdw==';
 
 
 export class EsreQueries {
@@ -40,10 +40,15 @@ export class EsreQueries {
 
   async queryElasticsearch(params:any) {
     // Dummy Test Query
-    const result= await this._client.search<Document>({
-      index: 'production',
+
+    let q = {
+      index: 'kibana_sample_data_flights',
+      "size": 100,
+      "_source": ["Carrier", "OriginCityName", "DestCityName", "FlightDelayMin", "FlightDelayType"],
       "query": {"match_all": {}}
-    }).catch(err => {
+    }
+
+    const result= await this._client.search<Document>(q).catch(err => {
       console.error(err)
     })
 
@@ -61,15 +66,27 @@ export class EsreQueries {
     return f;
  } 
 
+  async parsePrompt(data:any) {
+    return "This data is in the kibana_sample_data_flights index in elasticsearch.";
+  }
+
    async  assembleSources(data:any) {
    
     //let encodedText = []
-    let finalText = ''
+    let finalText = 'The following data is in a csv format and is delimted with |. \n ';
+    finalText += 'This data was queried from elasticserach using the Elasticsearch Relevance Engine. \n ';
+   // finalText += 'This data is in the kibana_sample_data_flights index in elasticsearch. \n ';
+    finalText += 'Below is the csv data from that index and it has 100 records. \n '
+
+    //Add header to turn it | delimeted csv
+    finalText += "Carrier | OriginCityName | DestCityName | FlightDelayMin | FlightDelayType \n " 
 
     data.forEach(element => {
+      let sourceText = '';
+      //This was specific to the garbage test data
+      //let sourceText = element!.title + " " + element!.message;
+      sourceText = element!.Carrier + " | " +  element!.OriginCityName+ " | " +  element!.DestCityName+ " | " +  element!.FlightDelayMin+ " | " +  element!.FlightDelayType + " \n "
 
-      
-      let sourceText = element!.title + " " + element!.message;
      // 400 tokens per source
       let encodedText = this._encoding!.encode(sourceText);
       if (encodedText.length > 400) {
@@ -77,7 +94,7 @@ export class EsreQueries {
         let text = this._decoder!.decode(this._encoding!.decode(encodedText))
         finalText += text;
       } else {
-        finalText += sourceText
+        finalText += sourceText;
       }
       
     });
@@ -106,6 +123,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     const { messages, key, model, elasticCloudID: googleAPIKey, elasticApiKey: googleCSEId } =
       req.body as ElasticsearchBody;
 
+
+    console.log(messages);
+
     encoding = await getTiktokenEncoding(model.id);
 
     // userMessage is the typed queston from the user in the app
@@ -116,24 +136,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
 
 
     const elasticQuery = new EsreQueries(encoding, textDecoder);
-
-
     const elasticsearchData: any = await elasticQuery.queryElasticsearch(null);
-
     const elasticSources: any = await elasticQuery.assembleSources(elasticsearchData);
+    const sourcePrompt: any  = await elasticQuery.parsePrompt('');
 
 
     const answerPrompt = endent`
-    Provide me with the information I requested. Use the sources to provide an accurate response. Respond in markdown format. Cite the sources you used as a markdown link as you use them at the end of each sentence by number of the source (ex: [[1]](link.com)). Provide an accurate response and then stop. Today's date is ${new Date().toLocaleDateString()}.
+    Provide me with the information I requested. Use the sources to provide an accurate response. Respond in markdown format.  Provide an accurate response and then stop. Today's date is ${new Date().toLocaleDateString()}.
 
-    Example Input:
-    What's the weather in San Francisco today?
-
-    Example Sources:
-    [Weather in San Francisco](https://www.google.com/search?q=weather+san+francisco)
-
-    Example Response:
-    It's 70 degrees and sunny in San Francisco today. [[1]](https://www.google.com/search?q=weather+san+francisco)
+    Prompt for this data:
+    ${sourcePrompt}
 
     Input:
     ${userMessage.content.trim()}
@@ -153,12 +165,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
 
     const answerMessage: Message = { role: 'user', content: answerPrompt };
     const openai = getOpenAIApi(model.azureDeploymentId);
+
     const answerRes = await openai.createChatCompletion({
       model: model.id,
       messages: [
         {
           role: 'system',
-          content: `Use the sources to provide an accurate response. Respond in markdown format. Cite the sources you used as [1](link), etc, as you use them. Maximum 4 sentences.`,
+          content: `Use the sources to provide an accurate response. Respond in markdown format. Maximum 4 sentences.`,
         },
         answerMessage,
       ],
