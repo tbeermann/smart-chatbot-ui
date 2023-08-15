@@ -32,7 +32,7 @@ export function useElasticsearchMode(conversations: Conversation[]): ChatModeRun
     },
     onMutate: async (variables) => {
       console.log(variables);
-      variables.body.elasticCloudID = chatModeKeys
+      variables.body.elasticCloudId = chatModeKeys
         .find((key) => key.chatModeId === 'elasticsearch')
         ?.requiredKeys.find((key) => key.key === 'ELASTIC_CLOUD_ID')?.value;
       variables.body.elasticApiKey = chatModeKeys

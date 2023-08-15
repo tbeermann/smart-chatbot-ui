@@ -47,7 +47,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
 
     const googleData = await googleRes.json();
 
-    // console.log("api/google.ts googleData = " + JSON.stringify(googleData, null, 6));
+    console.log('___________ USING api/google.ts');
 
     const sources: GoogleSource[] = googleData.items.map((item: any) => ({
       title: item.title,

@@ -67,7 +67,14 @@ export class UserDb {
   async getConversations(): Promise<Conversation[]> {
     const result= await this._elastic.search<Document>({
       index: 'conversations',
-      "query": {"match_all": {}}
+      "query": {"match_all": {}},
+      "sort": [
+        {
+          "timestamp": {
+            "order": "desc"
+          }
+        }
+      ]
     }).catch(err => {
       console.error(err)
     })
@@ -176,7 +183,14 @@ export class UserDb {
 
     const result= await this._elastic.search<Document>({
       index: 'prompts',
-      "query": {"match_all": {}}
+      "query": {"match_all": {}},
+      "sort": [
+        {
+          "timestamp": {
+            "order": "desc"
+          }
+        }
+      ]
     }).catch(err => {
       console.error(err)
     })

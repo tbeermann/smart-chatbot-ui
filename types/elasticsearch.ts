@@ -1,7 +1,7 @@
 import { ChatBody, Message } from './chat';
 
 export interface ElasticsearchBody extends ChatBody {
-  elasticCloudID: string;
+  elasticCloudId: string;
   elasticApiKey: string;
 }
 

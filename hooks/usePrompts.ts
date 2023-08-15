@@ -44,6 +44,8 @@ export default function usePrompts(): [Prompt[], PromptsAction] {
     const newPrompt: Prompt = {
       id: uuidv4(),
       name: `Prompt ${prompts.length + 1}`,
+      elasticQuery: '',
+      timestamp: new Date().toISOString(),
       description: '',
       content: '',
       model: OpenAIModels[defaultModelId],

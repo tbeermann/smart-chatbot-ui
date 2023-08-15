@@ -61,6 +61,7 @@ export default function useConversations(): [
       model: lastConversation?.model || models.find(m => m.id == defaultModelId),
       prompt: t(DEFAULT_SYSTEM_PROMPT),
       temperature: settings.defaultTemperature,
+      timestamp: new Date().toISOString(),
       folderId: null,
     };
 

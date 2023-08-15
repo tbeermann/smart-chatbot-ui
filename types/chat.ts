@@ -20,8 +20,10 @@ export const ChatBodySchema = z.object({
   key: z.string(),
   prompt: z.string(),
   temperature: z.number(),
-  elasticCloudID: z.string().optional(),
+  elasticCloudId: z.string().optional(),
   elasticApiKey: z.string().optional(),
+  googleAPIKey: z.string().optional(),
+  googleCSEId: z.string().optional(),
 });
 
 export type ChatBody = z.infer<typeof ChatBodySchema>;
@@ -45,6 +47,7 @@ export const ConversationSchema = z.object({
   model: OpenAIModelSchema,
   prompt: z.string(),
   temperature: z.number(),
+  timestamp: z.string(),
   folderId: z.string().nullable(),
 });
 

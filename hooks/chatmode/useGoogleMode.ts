@@ -32,12 +32,12 @@ export function useGoogleMode(conversations: Conversation[]): ChatModeRunner {
     },
     onMutate: async (variables) => {
       console.log(variables);
-      variables.body.elasticCloudID = chatModeKeys
+      variables.body.googleAPIKey = chatModeKeys
         .find((key) => key.chatModeId === 'google-search')
         ?.requiredKeys.find((key) => key.key === 'GOOGLE_API_KEY')?.value;
-      variables.body.elasticApiKey = chatModeKeys
+      variables.body.googleCSEId = chatModeKeys
         .find((key) => key.chatModeId === 'google-search')
-        ?.requiredKeys.find((key) => key.key === 'ELASTIC_API_KEY')?.value;
+        ?.requiredKeys.find((key) => key.key === 'GOOGLE_CSE_ID')?.value;
       homeDispatch({
         field: 'selectedConversation',
         value: variables.conversation,

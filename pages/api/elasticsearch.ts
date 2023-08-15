@@ -17,9 +17,9 @@ import { getOpenAIApi } from '@/utils/server/openai';
 import { ObjectEncodingOptions } from 'node:fs';
 
 
-//TEMP
-let ELASTIC_CLOUD_ID = 'Squishy_Chicken:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvOjQ0MyRkOWIxMmVhOTI3NGQ0NWEyYmYwMzU2OGJiOWJlMTg5YyRlOTY1ZmFmMDgwMTQ0NTlhYjVlN2JjNmYxMWRkYzgwNw==';
-let ELASTIC_API_KEY = 'Mnd4SjE0a0I3bnZlWUZpSVJfVUM6UlV3a1VZS3pUTW13ck5QU3N1WDZwdw==';
+
+let ELASTIC_CLOUD_ID =  process.env.ELASTIC_CLOUD_ID;
+let ELASTIC_API_KEY =  process.env.ELASTIC_API_KEY; 
 
 
 export class EsreQueries {
@@ -73,19 +73,18 @@ export class EsreQueries {
    async  assembleSources(data:any) {
    
     //let encodedText = []
-    let finalText = 'The following data is in a csv format and is delimted with |. \n ';
+    let finalText = 'The following data is in a csv format and is delimted with two spaces. \n ';
     finalText += 'This data was queried from elasticserach using the Elasticsearch Relevance Engine. \n ';
-   // finalText += 'This data is in the kibana_sample_data_flights index in elasticsearch. \n ';
     finalText += 'Below is the csv data from that index and it has 100 records. \n '
 
     //Add header to turn it | delimeted csv
-    finalText += "Carrier | OriginCityName | DestCityName | FlightDelayMin | FlightDelayType \n " 
+    finalText += "Carrier  OriginCityName  DestCityName  FlightDelayMin  FlightDelayType  \n " 
 
     data.forEach(element => {
       let sourceText = '';
       //This was specific to the garbage test data
       //let sourceText = element!.title + " " + element!.message;
-      sourceText = element!.Carrier + " | " +  element!.OriginCityName+ " | " +  element!.DestCityName+ " | " +  element!.FlightDelayMin+ " | " +  element!.FlightDelayType + " \n "
+      sourceText = element!.Carrier + "  " +  element!.OriginCityName+ "  " +  element!.DestCityName+ "  " +  element!.FlightDelayMin+ "  " +  element!.FlightDelayType + " \n "
 
      // 400 tokens per source
       let encodedText = this._encoding!.encode(sourceText);
@@ -120,11 +119,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   let encoding: Tiktoken | null = null;
 
   try {
-    const { messages, key, model, elasticCloudID: googleAPIKey, elasticApiKey: googleCSEId } =
+    const { messages, key, model, prompt, elasticCloudId: googleAPIKey, elasticApiKey: googleCSEId, temperature } =
       req.body as ElasticsearchBody;
 
-
+console.log(' MADE IT HERE')
     console.log(messages);
+    console.log("PROMPT in Elasticsearch")
+    console.log(prompt);
 
     encoding = await getTiktokenEncoding(model.id);
 
@@ -156,12 +157,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     Response:
     `;
 
-    console.log( 'Prompt with Elastic data  ........................................  ');
-    console.log( '');
+    // console.log( 'Prompt with Elastic data  ........................................  ');
+    // console.log( '');
 
-    console.log(answerPrompt);
-    console.log( '');
-    console.log( 'END Prompt with Elastic data  ....................................   ');
+    // console.log(answerPrompt);
+    // console.log( '');
+    // console.log( 'END Prompt with Elastic data  ....................................   ');
 
     const answerMessage: Message = { role: 'user', content: answerPrompt };
     const openai = getOpenAIApi(model.azureDeploymentId);

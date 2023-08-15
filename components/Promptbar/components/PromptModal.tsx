@@ -24,6 +24,7 @@ export const PromptModal: FC<Props> = ({
   const { t } = useTranslation('promptbar');
   const [name, setName] = useState(prompt.name);
   const [description, setDescription] = useState(prompt.description);
+  const [elasticQuery, setElasticQuery] = useState(prompt.elasticQuery);
   const [content, setContent] = useState(prompt.content);
   const [isTyping, setIsTyping] = useState<boolean>(false);
 
@@ -31,7 +32,13 @@ export const PromptModal: FC<Props> = ({
 
   const handleEnter = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && !isTyping) {
-      onUpdatePrompt({ ...prompt, name, description, content: content.trim() });
+      onUpdatePrompt({
+        ...prompt,
+        name,
+        elasticQuery,
+        description,
+        content: content.trim(),
+      });
       onClose();
     }
   };
@@ -72,6 +79,17 @@ export const PromptModal: FC<Props> = ({
         placeholder={t('A description for your prompt.') || ''}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
+        rows={2}
+      />
+      <div className="mt-6 text-sm font-bold text-black dark:text-neutral-200">
+        {t('Elasticsearch Query')}
+      </div>
+      <Textarea
+        className="mt-2 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-[#40414F] dark:text-neutral-100"
+        style={{ resize: 'none' }}
+        placeholder={t('Elasticsearch query.') || ''}
+        value={elasticQuery}
+        onChange={(e) => setElasticQuery(e.target.value)}
         rows={3}
       />
       <div className="mt-6 text-sm font-bold text-black dark:text-neutral-200">
@@ -87,15 +105,16 @@ export const PromptModal: FC<Props> = ({
         }
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        rows={10}
+        rows={4}
       />
       <button
         type="button"
-        className="w-full px-4 py-2 mt-6 border rounded-lg shadow border-neutral-500 text-neutral-900 hover:bg-neutral-100 focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
+        className="w-1/2 px-4 py-2 mt-6 border rounded-lg shadow border-neutral-500 text-neutral-900 hover:bg-neutral-100 focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
         onClick={() => {
           const updatedPrompt = {
             ...prompt,
             name,
+            elasticQuery,
             description,
             content: content.trim(),
           };
@@ -105,6 +124,15 @@ export const PromptModal: FC<Props> = ({
         }}
       >
         {t('Save')}
+      </button>
+      <button
+        type="button"
+        className="w-1/2 px-4 py-2 mt-6 border rounded-lg shadow border-neutral-500 text-neutral-900 hover:bg-neutral-100 focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
+        onClick={() => {
+          onClose();
+        }}
+      >
+        {t('Cancel')}
       </button>
     </Dialog>
   );
