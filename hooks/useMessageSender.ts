@@ -48,6 +48,7 @@ export const useMesseageSender = () => {
       model: updatedConversation.model,
       messages: updatedConversation.messages,
       key: apiKey,
+      elasticQuery: conversation.elasticQuery,
       prompt: conversation.prompt,
       temperature: conversation.temperature,
     };

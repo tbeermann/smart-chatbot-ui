@@ -111,6 +111,8 @@ export const SystemPrompt: FC<Props> = ({
       setValue(updatedContent);
       onChangePrompt(updatedContent);
 
+      conversation.elasticQuery = prompt.elasticQuery;
+
       updatePromptListVisibility(prompt.content);
     }
   };

@@ -123,6 +123,7 @@ export const Chatbar = () => {
         value: {
           id: uuidv4(),
           name: t('New Conversation'),
+          elasticQuery: '',
           messages: [],
           model: OpenAIModels[defaultModelId],
           prompt: tChat(DEFAULT_SYSTEM_PROMPT),
@@ -152,6 +153,7 @@ export const Chatbar = () => {
           value: {
             id: uuidv4(),
             name: t('New Conversation'),
+            elasticQuery: '',
             messages: [],
             model: OpenAIModels[defaultModelId],
             prompt: tChat(DEFAULT_SYSTEM_PROMPT),

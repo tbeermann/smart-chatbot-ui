@@ -60,6 +60,7 @@ export default function useConversations(): [
       messages: [],
       model: lastConversation?.model || models.find(m => m.id == defaultModelId),
       prompt: t(DEFAULT_SYSTEM_PROMPT),
+      elasticQuery: '',
       temperature: settings.defaultTemperature,
       timestamp: new Date().toISOString(),
       folderId: null,

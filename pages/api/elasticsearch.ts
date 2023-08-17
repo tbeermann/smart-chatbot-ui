@@ -119,13 +119,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   let encoding: Tiktoken | null = null;
 
   try {
-    const { messages, key, model, prompt, elasticCloudId: googleAPIKey, elasticApiKey: googleCSEId, temperature } =
+    const { messages, key, model, prompt, elasticQuery, elasticCloudId: googleAPIKey, elasticApiKey: googleCSEId, temperature } =
       req.body as ElasticsearchBody;
 
 console.log(' MADE IT HERE')
-    console.log(messages);
+   // console.log(messages);
     console.log("PROMPT in Elasticsearch")
     console.log(prompt);
+    console.log("QUERY");
+    console.log(elasticQuery);
 
     encoding = await getTiktokenEncoding(model.id);
 
@@ -136,10 +138,10 @@ console.log(' MADE IT HERE')
     const query = encodeURIComponent(userMessage.content.trim());
 
 
-    const elasticQuery = new EsreQueries(encoding, textDecoder);
-    const elasticsearchData: any = await elasticQuery.queryElasticsearch(null);
-    const elasticSources: any = await elasticQuery.assembleSources(elasticsearchData);
-    const sourcePrompt: any  = await elasticQuery.parsePrompt('');
+    const esreQuery = new EsreQueries(encoding, textDecoder);
+    const esreData: any = await esreQuery.queryElasticsearch(null);
+    const esreSources: any = await esreQuery.assembleSources(esreData);
+    const sourcePrompt: any  = await esreQuery.parsePrompt('');
 
 
     const answerPrompt = endent`
@@ -152,7 +154,7 @@ console.log(' MADE IT HERE')
     ${userMessage.content.trim()}
 
     Sources:
-    ${elasticSources}
+    ${esreSources}
 
     Response:
     `;

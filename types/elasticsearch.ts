@@ -3,6 +3,7 @@ import { ChatBody, Message } from './chat';
 export interface ElasticsearchBody extends ChatBody {
   elasticCloudId: string;
   elasticApiKey: string;
+  elasticQuery: string;
 }
 
 export interface ElasticsearchResponse {

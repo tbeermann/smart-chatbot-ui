@@ -161,6 +161,7 @@ const Home = ({
           value: {
             id: uuidv4(),
             name: t('New Conversation'),
+            elasticQuery: '',
             messages: [],
             model: models.find((m) => m.id == defaultModelId),
             prompt: DEFAULT_SYSTEM_PROMPT,

@@ -183,14 +183,7 @@ export class UserDb {
 
     const result= await this._elastic.search<Document>({
       index: 'prompts',
-      "query": {"match_all": {}},
-      "sort": [
-        {
-          "timestamp": {
-            "order": "desc"
-          }
-        }
-      ]
+      "query": {"match_all": {}}
     }).catch(err => {
       console.error(err)
     })

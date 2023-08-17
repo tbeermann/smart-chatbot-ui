@@ -212,7 +212,6 @@ describe('cleanData Functions', () => {
             id: '1',
             name: 'prompt 1',
             elasticQuery: '',
-            timestamp: Date().toString(),
             description: '',
             content: '',
             model: OpenAIModels[OpenAIModelID.GPT_3_5],
